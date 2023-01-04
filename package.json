@@ -1,0 +1,37 @@
+{
+  "name": "cannon-ui",
+  "version": "1.0.0",
+  "description": "A web ui of autocannon",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd client && npm run serve",
+    "serve": "node server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sun0day/cannon-ui.git"
+  },
+  "engines": {
+    "node": "^16.0.0 || ^18.0.0"
+  },
+  "keywords": [
+    "autocannon",
+    "load-test",
+    "stress-test",
+    "web-ui"
+  ],
+  "author": "sun0day",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sun0day/cannon-ui/issues"
+  },
+  "homepage": "https://github.com/sun0day/cannon-ui#readme",
+  "dependencies": {
+    "@fastify/formbody": "^7.3.0",
+    "@fastify/static": "^6.5.1",
+    "autocannon": "^7.10.0",
+    "fastify": "^4.10.2",
+    "lru-cache": "^7.14.1"
+  }
+}
