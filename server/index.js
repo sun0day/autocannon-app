@@ -35,9 +35,8 @@ fastify.get('/api/test', async (req, reply) => {
 
 fastify.post('/api/test', async (req, reply) => {
   const tester = new Tester(req.body)
-  const id = tid()
-  cache.set(id, tester)
-  return reply.send({ id })
+  cache.set(tester.tid, tester)
+  return reply.send('start success')
 });
 
 async function start() {

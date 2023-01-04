@@ -309,10 +309,9 @@ export default {
       this[k] && (props[k] = this[k])
       return props[k]
     })
-    props.scopedSlots = { ...this.$scopedSlots }
     console.log(props)
     const table = (
-      <a-table {...{ props }} onChange={this.loadData} onExpand={(expanded, record) => { this.$emit('expand', expanded, record) }}>
+      <a-table {...{ props, scopedSlots: { ...this.$scopedSlots } }} scroll={{ x: 'max-content' }} onChange={this.loadData} onExpand={(expanded, record) => { this.$emit('expand', expanded, record) }}>
         {Object.keys(this.$slots).map(name => (<template slot={name}>{this.$slots[name]}</template>))}
       </a-table>
     )

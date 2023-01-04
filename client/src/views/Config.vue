@@ -92,9 +92,7 @@
 
         <span slot="action" slot-scope="text, record">
           <template>
-            <a @click="handleEdit(record)">配置</a>
-            <a-divider type="vertical" />
-            <a @click="handleSub(record)">订阅报警</a>
+            <a @click="handleStartTest(record)">start test</a>
           </template>
         </span>
       </s-table>
@@ -116,7 +114,9 @@
 import moment from 'moment'
 import { STable, Ellipsis, ConfigEditor } from '@/components'
 import { getRoleList, getServiceList } from '@/api/manage'
-import { getConfigs } from '@/utils/storage'
+import { startTest } from '@/api/test'
+import { getConfigs, saveTest } from '@/utils/storage'
+import { genId } from '@/utils/id'
 
 // import StepByStepModal from './modules/StepByStepModal'
 // import CreateForm from './modules/CreateForm'
@@ -129,12 +129,15 @@ const columns = [
   {
     title: 'url',
     dataIndex: 'url',
-    customRender: (text, record) => `${record.method}-${record.url}`,
+  },
+  {
+    title: 'method',
+    dataIndex: 'method',
   },
   {
     title: 'connections',
     dataIndex: 'connections',
-    width: '100px',
+    width: '120px',
   },
   {
     title: 'duration',
@@ -153,10 +156,11 @@ const columns = [
     customRender: (text) => moment(text).format('YYYY-MM-DD HH:mm:ss'),
   },
   {
-    title: '操作',
+    title: 'action',
     dataIndex: 'action',
-    width: '150px',
+    width: '100px',
     scopedSlots: { customRender: 'action' },
+    fixed: 'right',
   },
 ]
 
@@ -219,9 +223,19 @@ export default {
     handleAdd() {
       this.visible = true
     },
-    handleEdit(record) {
-      this.visible = true
-      this.mdl = { ...record }
+    async handleStartTest(record) {
+      const tid = genId()
+      const test = { ...record, tid, createTime: new Date() }
+      await startTest(test)
+      saveTest(test)
+      this.$notification.success({
+        message: `${tid} has already started`,
+        description: (
+          <p>
+            go to <a onclick={() => this.$router.push('/history')}>History</a> menu to check test status
+          </p>
+        ),
+      })
     },
     handleOk() {
       const form = this.$refs.createModal.form
