@@ -18,10 +18,10 @@
     >
       <a-form-item label="url">
         <a-input
+          :disabled="!editable"
           v-decorator="[
             'url',
             {
-              initialValue: 'http://',
               rules: [
                 {
                   required: true,
@@ -37,9 +37,10 @@
 
       <a-form-item label="method">
         <a-select
+          :disabled="!editable"
           v-decorator="[
             'method',
-            { initialValue: 'GET', rules: [{ required: true, message: 'Please input target url', whitespace: true }] },
+            { rules: [{ required: true, message: 'Please input target url', whitespace: true }] },
           ]"
         >
           <a-select-option value="GET">GET</a-select-option>
@@ -50,19 +51,19 @@
       </a-form-item>
 
       <a-form-item label="connections">
-        <a-input-number :min="1" :precision="0" v-decorator="['connections', { initialValue: 10 }]" />
+        <a-input-number :disabled="!editable" :min="1" :precision="0" v-decorator="['connections']" />
       </a-form-item>
 
       <a-form-item label="duration">
         <div class="number-wrapper">
-          <a-input-number :min="1" :precision="0" v-decorator="['duration', { initialValue: 10 }]" /> s
+          <a-input-number :disabled="!editable" :min="1" :precision="0" v-decorator="['duration']" /> s
         </div>
       </a-form-item>
 
       <a-form-item label="pipelining">
-        <a-input-number :min="1" :precision="0" v-decorator="['pipelining', { initialValue: 1 }]" />
+        <a-input-number :disabled="!editable" :min="1" :precision="0" v-decorator="['pipelining']" />
       </a-form-item>
-      <a-col :offset="6" :span="18" :style="{ textAlign: 'left' }">
+      <a-col v-if="editable" :offset="6" :span="18" :style="{ textAlign: 'left' }">
         <a-button type="primary" html-type="submit" class="submit-btn"> Save </a-button>
       </a-col>
     </a-form>
@@ -76,9 +77,23 @@ import { genId } from '@/utils/id'
 export default {
   name: 'ConfigEditor',
   props: {
+    editable: {
+      type: Boolean,
+      default: true,
+    },
     visible: {
       type: Boolean,
       default: false,
+    },
+    initialValue: {
+      type: Object,
+      default: () => ({
+        url: 'http://',
+        method: 'GET',
+        connections: 10,
+        duration: 10,
+        pipelining: 1,
+      }),
     },
     onClose: {
       type: Function,
@@ -93,6 +108,13 @@ export default {
     return {
       form: this.$form.createForm(this),
     }
+  },
+  created() {
+    this.form.getFieldDecorator('url', { initialValue: this.initialValue.url })
+    this.form.getFieldDecorator('connections', { initialValue: this.initialValue.connections })
+    this.form.getFieldDecorator('method', { initialValue: this.initialValue.method })
+    this.form.getFieldDecorator('duration', { initialValue: this.initialValue.duration })
+    this.form.getFieldDecorator('pipelining', { initialValue: this.initialValue.pipelining })
   },
   methods: {
     handleSubmit(e) {
@@ -123,6 +145,10 @@ export default {
   }
 }
 
-.submit-btn {
+.ant-select-disabled .ant-select-selection,
+.ant-input.ant-input-disabled,
+.ant-input-number-disabled {
+  background-color: #fff;
+  color: #000;
 }
 </style>

@@ -7,6 +7,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store/'
 import i18n from './locales'
+import { pollTests } from './utils/storage'
 import { VueAxios } from './utils/request'
 import ProLayout, { PageHeaderWrapper } from '@ant-design-vue/pro-layout'
 import themePluginConfig from '../config/themePluginConfig'
@@ -40,3 +41,5 @@ new Vue({
   created: bootstrap,
   render: h => h(App)
 }).$mount('#app')
+
+setInterval(pollTests, 2000)

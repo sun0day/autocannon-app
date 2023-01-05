@@ -1,7 +1,6 @@
 const fastify = require('fastify')({ logger: true })
 const Tester = require('./tester')
 const cache = require('./cache');
-const tid = require('./tid');
 
 // fastify.register(require('@fastify/static'), {
 //   root: assetDir,
@@ -22,20 +21,20 @@ fastify.get('/', async (req, reply) => {
 });
 
 fastify.get('/api/test', async (req, reply) => {
-  const { id } = req.query
+  const { tid } = req.query
 
-  const tester = cache.get(id)
+  const tester = cache.get(tid)
 
   if (!tester) {
-    return reply.status(400).send({ error: `test ${id} not exist` })
+    return reply.send({ error: `${tid} not exist`, status: 'error', result: null })
   }
 
-  return reply.send(tester.result)
+  return reply.send(tester)
 })
 
 fastify.post('/api/test', async (req, reply) => {
   const tester = new Tester(req.body)
-  cache.set(tester.tid, tester)
+  cache.set(req.body.tid, tester)
   return reply.send('start success')
 });
 

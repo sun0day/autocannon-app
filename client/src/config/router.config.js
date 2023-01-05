@@ -87,7 +87,7 @@ export const asyncRouterMap = [
         component: RouteView,
         meta: { title: 'menu.history', icon: 'table', permission: ['table'] },
         hideChildrenInMenu: true,
-        component: () => import('@/views/list/TableList'),
+        component: () => import('@/views/History'),
         // children: [
         //   {
         //     path: '/history',

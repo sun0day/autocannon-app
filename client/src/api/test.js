@@ -6,3 +6,8 @@ export const startTest = config => request({
   method: 'POST',
   data: config
 })
+
+export const getTest = test => request({
+  url: '/test',
+  params: test
+})

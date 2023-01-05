@@ -1,6 +1,12 @@
 <template>
   <page-header-wrapper>
-    <ConfigEditor v-if="visible" :visible="visible" :onClose="handleCloseConfigEditor" :onSave="handleSaveConfig" />
+    <ConfigEditor
+      v-if="visible"
+      :editable="false"
+      :visible="visible"
+      :onClose="handleCloseConfigEditor"
+      :initialValue="config"
+    />
     <a-card :bordered="false">
       <div class="table-page-search-wrapper">
         <a-form layout="inline">
@@ -12,12 +18,11 @@
             </a-col>
 
             <a-col :md="8" :sm="24">
-              <a-form-item label="method">
-                <a-select v-model="queryParam.method" :allowClear="true" placeholder="http method">
-                  <a-select-option value="GET">GET</a-select-option>
-                  <a-select-option value="POST">POST</a-select-option>
-                  <a-select-option value="PUT">PUT</a-select-option>
-                  <a-select-option value="DELETE">DELETE</a-select-option>
+              <a-form-item label="status">
+                <a-select v-model="queryParam.status" :allowClear="true" placeholder="test status">
+                  <a-select-option value="processing">processing</a-select-option>
+                  <a-select-option value="success">success</a-select-option>
+                  <a-select-option value="error">error</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
@@ -59,34 +64,28 @@
               >
                 <a-button type="primary" @click="$refs.table.refresh(true)">search</a-button>
                 <a-button style="margin-left: 8px" @click="() => (this.queryParam = {})">reset</a-button>
-                <a @click="toggleAdvanced" style="margin-left: 8px">
+                <!-- <a @click="toggleAdvanced" style="margin-left: 8px">
                   {{ advanced ? 'collapse' : 'expand' }}
                   <a-icon :type="advanced ? 'up' : 'down'" />
-                </a>
+                </a> -->
               </span>
             </a-col>
           </a-row>
         </a-form>
       </div>
 
-      <div class="table-operator">
-        <a-button type="primary" icon="plus" @click="handleAdd">create</a-button>
-        <a-dropdown v-action:edit v-if="selectedRowKeys.length > 0">
-          <a-menu slot="overlay">
-            <a-menu-item key="1"><a-icon type="delete" />删除</a-menu-item>
-            <!-- lock | unlock -->
-            <a-menu-item key="2"><a-icon type="lock" />锁定</a-menu-item>
-          </a-menu>
-          <a-button style="margin-left: 8px"> 批量操作 <a-icon type="down" /> </a-button>
-        </a-dropdown>
-      </div>
-
-      <s-table ref="table" size="default" rowKey="cid" :columns="columns" :data="loadData" showPagination="auto">
-        <span slot="serial" slot-scope="text, record, index">
-          {{ index + 1 }}
+      <s-table ref="table" size="default" rowKey="tid" :columns="columns" :data="loadData" showPagination="auto">
+        <span slot="url" slot-scope="text">
+          <template>
+            <a @click="handleShowConfigEditor(text)">{{ handleGetConfigUrl({ cid: text }) }}</a>
+          </template>
         </span>
-        <span slot="status" slot-scope="text">
-          <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
+        <span slot="status" slot-scope="text, record, index">
+          <a-tooltip v-if="text === 'error'">
+            <template slot="title"> {{ record.error || 'unknown error' }} </template>
+            <a-badge status="error" text="error" />
+          </a-tooltip>
+          <a-badge v-else :status="text || 'processing'" :text="text || 'processing'" />
         </span>
         <span slot="description" slot-scope="text">
           <ellipsis :length="4" tooltip>{{ text }}</ellipsis>
@@ -94,7 +93,9 @@
 
         <span slot="action" slot-scope="text, record">
           <template>
-            <a @click="handleStartTest(record)">test</a>
+            <a @click="" :class="record.status === 'error' && 'result-disabled'">result</a>
+            <a-divider type="vertical" />
+            <a @click="handleRetry(record)">retry</a>
           </template>
         </span>
       </s-table>
@@ -117,7 +118,7 @@ import moment from 'moment'
 import { STable, Ellipsis, ConfigEditor } from '@/components'
 import { getRoleList, getServiceList } from '@/api/manage'
 import { startTest } from '@/api/test'
-import { getConfigs, saveTest } from '@/utils/storage'
+import { getConfigs, getConfig, getTests, saveTest } from '@/utils/storage'
 import { genId } from '@/utils/id'
 
 // import StepByStepModal from './modules/StepByStepModal'
@@ -125,31 +126,38 @@ import { genId } from '@/utils/id'
 
 const columns = [
   {
-    title: 'cid',
-    dataIndex: 'cid',
+    title: 'tid',
+    dataIndex: 'tid',
   },
   {
     title: 'url',
-    dataIndex: 'url',
+    dataIndex: 'cid',
+    scopedSlots: { customRender: 'url' },
   },
   {
     title: 'status',
     dataIndex: 'status',
+    scopedSlots: { customRender: 'status' },
   },
   {
-    title: 'connections',
-    dataIndex: 'connections',
-    width: '120px',
+    title: '2xx',
+    dataIndex: 'result.2xx',
+    customRender: (text, { result }) => result && result['2xx'],
   },
   {
-    title: 'duration',
-    dataIndex: 'duration',
-    width: '100px',
+    title: 'non 2xx',
+    dataIndex: 'result.non2xx',
+    customRender: (text, { result }) => result && result['non2xx'],
   },
   {
-    title: 'pipelining',
-    dataIndex: 'pipelining',
-    width: '100px',
+    title: 'errors',
+    dataIndex: 'result.errors',
+    customRender: (text, { result }) => result && result['errors'],
+  },
+  {
+    title: 'timeouts',
+    dataIndex: 'result.timeouts',
+    customRender: (text, { result }) => result && result['timeouts'],
   },
   {
     title: 'create time',
@@ -160,9 +168,9 @@ const columns = [
   {
     title: 'action',
     dataIndex: 'action',
-    width: '100px',
-    scopedSlots: { customRender: 'action' },
+    width: '150px',
     fixed: 'right',
+    scopedSlots: { customRender: 'action' },
   },
 ]
 
@@ -172,23 +180,27 @@ export default {
     STable,
     Ellipsis,
     ConfigEditor,
-    // CreateForm,
-    // StepByStepModal,
   },
   data() {
     this.columns = columns
     return {
       // create model
       visible: false,
+      config: {},
       confirmLoading: false,
-      mdl: null,
       // 高级搜索 展开/关闭
       advanced: false,
       // 查询参数
       queryParam: {},
       // 加载数据方法 必须为 Promise 对象
       loadData: (params) => {
-        const data = getConfigs({ sortField: 'createTime', sortOrder: 'descend', ...params, filter: this.queryParam })
+        const configs = getConfigs({ filter: this.queryParam })
+        const data = getTests({
+          sortField: 'createTime',
+          sortOrder: 'descend',
+          ...params,
+          filter: { ...this.queryParam, cid: configs.map((c) => c.cid) },
+        })
         return Promise.resolve({ data, totalCount: data.length, pageNo: params.pageNo })
       },
       selectedRowKeys: [],
@@ -215,6 +227,14 @@ export default {
     },
   },
   methods: {
+    handleGetConfigUrl(params) {
+      const config = getConfig(params)
+      return config && `${config.method} - ${config.url}`
+    },
+    handleShowConfigEditor(cid) {
+      this.visible = true
+      this.config = getConfig({ cid })
+    },
     handleCloseConfigEditor() {
       this.visible = false
     },
@@ -225,19 +245,24 @@ export default {
     handleAdd() {
       this.visible = true
     },
-    async handleStartTest(record) {
+    async handleRetry(record) {
+      const config = getConfig(record)
       const tid = genId()
       const createTime = new Date()
-      const test = { ...record, tid, createTime }
+      const test = { ...config, tid, createTime }
       await startTest(test)
-      saveTest({ tid, createTime, cid: record.cid })
+
+      saveTest({ tid, createTime, cid: config.cid })
+
+      this.$refs.table.refresh()
+
       this.$notification.success({
         message: `${tid} has already started`,
-        description: (
-          <p>
-            go to <a onclick={() => this.$router.push('/history')}>History</a> menu to check test status
-          </p>
-        ),
+        // description: (
+        //   <p>
+        //     go to <a onclick={() => this.$router.push('/history')}>History</a> menu to check test status
+        //   </p>
+        // ),
       })
     },
     handleOk() {
@@ -312,3 +337,10 @@ export default {
   },
 }
 </script>
+
+<style land="less">
+.result-disabled {
+  cursor: not-allowed;
+  color: #a0a0a0 !important;
+}
+</style>
