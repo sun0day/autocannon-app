@@ -15,7 +15,8 @@ export default {
 
       // 存储表格onchange时的filters， sorter对象
       filters: {},
-      sorter: {}
+      sorter: {},
+      innerDataSource: []
     }
   },
   props: Object.assign({}, T.props, {
@@ -78,6 +79,12 @@ export default {
     pageURI: {
       type: Boolean,
       default: false
+    },
+    innerColumns: {
+      type: Array
+    },
+    onExpand: {
+      type: Function
     }
   }),
   watch: {
@@ -309,10 +316,21 @@ export default {
       this[k] && (props[k] = this[k])
       return props[k]
     })
-    console.log(props)
+    console.log(props, this.innerColumns)
     const table = (
-      <a-table {...{ props, scopedSlots: { ...this.$scopedSlots } }} scroll={{ x: 'max-content' }} onChange={this.loadData} onExpand={(expanded, record) => { this.$emit('expand', expanded, record) }}>
+      <a-table {...{ props, scopedSlots: { ...this.$scopedSlots } }} scroll={{ x: 'max-content' }} onChange={this.loadData} onExpand={(expanded, record) => {
+        if (expanded && this.onExpand) {
+          this.innerDataSource = this.onExpand(record)
+        }
+      }}>
         {Object.keys(this.$slots).map(name => (<template slot={name}>{this.$slots[name]}</template>))}
+        <a-table v-if={this.innerColumns}
+          scroll={{ x: 'max-content' }}
+          slot="expandedRowRender"
+          slot-scope="text, record"
+          columns={this.innerColumns}
+          dataSource={this.innerDataSource}
+          pagination={false}></a-table>
       </a-table>
     )
 

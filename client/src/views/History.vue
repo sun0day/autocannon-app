@@ -74,7 +74,16 @@
         </a-form>
       </div>
 
-      <s-table ref="table" size="default" rowKey="tid" :columns="columns" :data="loadData" showPagination="auto">
+      <s-table
+        ref="table"
+        size="default"
+        rowKey="tid"
+        :columns="columns"
+        :data="loadData"
+        showPagination="auto"
+        :innerColumns="innerColumns"
+        :onExpand="handleExpandHistory"
+      >
         <span slot="url" slot-scope="text">
           <template>
             <a @click="handleShowConfigEditor(text)">{{ handleGetConfigUrl({ cid: text }) }}</a>
@@ -93,8 +102,6 @@
 
         <span slot="action" slot-scope="text, record">
           <template>
-            <a @click="" :class="record.status === 'error' && 'result-disabled'">result</a>
-            <a-divider type="vertical" />
             <a @click="handleRetry(record)">retry</a>
           </template>
         </span>
@@ -124,6 +131,10 @@ import { genId } from '@/utils/id'
 // import StepByStepModal from './modules/StepByStepModal'
 // import CreateForm from './modules/CreateForm'
 
+const oneK = 1024
+const oneM = oneK * oneK
+const oneG = oneM * oneK
+
 const columns = [
   {
     title: 'tid',
@@ -140,14 +151,29 @@ const columns = [
     scopedSlots: { customRender: 'status' },
   },
   {
+    title: '1xx',
+    dataIndex: 'result.1xx',
+    customRender: (text, { result }) => result && result['1xx'],
+  },
+  {
     title: '2xx',
     dataIndex: 'result.2xx',
     customRender: (text, { result }) => result && result['2xx'],
   },
   {
-    title: 'non 2xx',
-    dataIndex: 'result.non2xx',
-    customRender: (text, { result }) => result && result['non2xx'],
+    title: '3xx',
+    dataIndex: 'result.3xx',
+    customRender: (text, { result }) => result && result['3xx'],
+  },
+  {
+    title: '4xx',
+    dataIndex: 'result.4xx',
+    customRender: (text, { result }) => result && result['4xx'],
+  },
+  {
+    title: '5xx',
+    dataIndex: 'result.5xx',
+    customRender: (text, { result }) => result && result['5xx'],
   },
   {
     title: 'errors',
@@ -168,10 +194,45 @@ const columns = [
   {
     title: 'action',
     dataIndex: 'action',
-    width: '150px',
-    fixed: 'right',
+    // fixed: 'right',
     scopedSlots: { customRender: 'action' },
   },
+]
+
+const innerColumns = [
+  {
+    key: 'type',
+    title: '',
+    dataIndex: 'type',
+    width: '110px',
+  },
+
+  // { key: 'p0_001', title: 'p0_001', dataIndex: 'p0_001' },
+  { key: 'p0_01', title: 'p0_01', dataIndex: 'p0_01' },
+  { key: 'p0_1', title: 'p0_1', dataIndex: 'p0_1' },
+  { key: 'p1', title: 'p1', dataIndex: 'p1' },
+  { key: 'p2_5', title: 'p2_5', dataIndex: 'p2_5' },
+  // { key: 'p10', title: 'p10', dataIndex: 'p10' },
+  // { key: 'p25', title: 'p25', dataIndex: 'p25' },
+  { key: 'p50', title: 'p50', dataIndex: 'p50' },
+  // { key: 'p75', title: 'p75', dataIndex: 'p75' },
+  { key: 'p90', title: 'p90', dataIndex: 'p90' },
+  // { key: 'p97.5', title: 'p97.5', dataIndex: 'p97.5' },
+  { key: 'p99', title: 'p99', dataIndex: 'p99' },
+  { key: 'p99_9', title: 'p99_9', dataIndex: 'p99_9' },
+  { key: 'p99_99', title: 'p99_99', dataIndex: 'p99_99' },
+  // { key: 'p99_999', title: 'p99_999', dataIndex: 'p99_999' },
+  // { key: 'total', title: 'total', dataIndex: 'total' },
+  { key: 'min', title: 'min', dataIndex: 'min' },
+  { key: 'max', title: 'max', dataIndex: 'max' },
+  {
+    key: 'average',
+    title: 'average',
+    dataIndex: 'average',
+  },
+
+  // { key: 'mean', title: 'mean', dataIndex: 'mean' },
+  { key: 'stddev', title: 'stddev', dataIndex: 'stddev' },
 ]
 
 export default {
@@ -183,6 +244,7 @@ export default {
   },
   data() {
     this.columns = columns
+    this.innerColumns = innerColumns
     return {
       // create model
       visible: false,
@@ -264,6 +326,32 @@ export default {
         //   </p>
         // ),
       })
+    },
+    handleExpandHistory({ result }) {
+      if (!result) {
+        return []
+      }
+      const { latency, requests, throughput } = result
+      return [
+        { type: 'latency', ...latency },
+        { type: 'requests', ...requests },
+        {
+          type: 'throughput',
+          ...Object.keys(throughput).reduce((acc, key) => {
+            let value = throughput[key]
+            if (value >= oneG) {
+              value = `${(value / oneG).toFixed(1)}GB`
+            } else if (value >= oneM) {
+              value = `${(value / oneM).toFixed(1)}MB`
+            } else if (value >= oneK) {
+              value = `${(value / oneK).toFixed(1)}KB`
+            } else {
+              value = `${value.toFixed(1)}B`
+            }
+            return { ...acc, [key]: value }
+          }, {}),
+        },
+      ]
     },
     handleOk() {
       const form = this.$refs.createModal.form

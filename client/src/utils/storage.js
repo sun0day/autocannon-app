@@ -7,7 +7,7 @@ export const TestKey = 'autocannon-test'
 export const getConfigs = ({
   sortField,
   sortOrder,
-  filter
+  filter,
 } = {}) => {
   let data = (JSON.parse(localStorage.getItem(ConfigKey)) || [])
 
