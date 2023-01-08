@@ -192,6 +192,12 @@ const columns = [
     customRender: (text) => moment(text).format('YYYY-MM-DD HH:mm:ss'),
   },
   {
+    title: 'finish time',
+    dataIndex: 'finishTime',
+    sorter: true,
+    customRender: (text, record) => record.result && moment(record.result.finish).format('YYYY-MM-DD HH:mm:ss'),
+  },
+  {
     title: 'action',
     dataIndex: 'action',
     // fixed: 'right',
@@ -333,7 +339,16 @@ export default {
       }
       const { latency, requests, throughput } = result
       return [
-        { type: 'latency', ...latency },
+        {
+          type: 'latency',
+          ...Object.keys(latency).reduce(
+            (acc, key) => ({
+              ...acc,
+              [key]: `${latency[key]}ms`,
+            }),
+            {}
+          ),
+        },
         { type: 'requests', ...requests },
         {
           type: 'throughput',

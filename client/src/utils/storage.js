@@ -70,7 +70,15 @@ export const getTests = ({
 
   if (sortField) {
     data = data.sort((next, cur) => {
-      return sortOrder === "descend" ? cur[sortField].localeCompare(next[sortField]) : next[sortField].localeCompare(cur[sortField])
+      let curValue = cur[sortField]
+      let nextValue = next[sortField]
+
+      if (sortField === 'finishTime') {
+        curValue = cur.result ? cur.result.finish : ''
+        nextValue = next.result ? next.result.finish : ''
+      }
+
+      return sortOrder === "descend" ? curValue.localeCompare(nextValue) : nextValue.localeCompare(curValue)
     })
   }
 
@@ -92,6 +100,9 @@ export const getTests = ({
             return value instanceof Array ? value.includes(item[key]) : item[key] === value
           case 'createTime':
             return moment(item[key]).isSame(value, 'day')
+          case 'finishTime':
+            return moment(item.result && item.result[key]).isSame(value, 'day')
+
           default:
             return true
         }
