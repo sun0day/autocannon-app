@@ -8,7 +8,9 @@ A web app based on [autocannon](https://github.com/mcollina/autocannon)
 
 # Preview
 
-<img width="500" alt="image" src="https://user-images.githubusercontent.com/102238922/211304533-74d886fe-e22b-4386-9104-e3d45ee90499.png"><img width="500" alt="image" src="https://user-images.githubusercontent.com/102238922/211304648-9d873e49-6861-469f-a130-7f684db5b70e.png">
+<img width="800" alt="image" src="https://user-images.githubusercontent.com/102238922/211304533-74d886fe-e22b-4386-9104-e3d45ee90499.png">
+
+<img width="800" alt="image" src="https://user-images.githubusercontent.com/102238922/211304648-9d873e49-6861-469f-a130-7f684db5b70e.png">
 
 ## Install
 

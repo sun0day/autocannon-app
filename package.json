@@ -1,5 +1,5 @@
 {
-  "name": "cannon-ui",
+  "name": "autocannon-app",
   "version": "1.0.0",
   "description": "A web ui of autocannon",
   "main": "index.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sun0day/cannon-ui.git"
+    "url": "git+https://github.com/sun0day/autocannon-app.git"
   },
   "engines": {
     "node": "^16.0.0 || ^18.0.0"
@@ -34,9 +34,9 @@
   "author": "sun0day",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sun0day/cannon-ui/issues"
+    "url": "https://github.com/sun0day/autocannon-app/issues"
   },
-  "homepage": "https://github.com/sun0day/cannon-ui#readme",
+  "homepage": "https://github.com/sun0day/autocannon-app#readme",
   "dependencies": {
     "@fastify/formbody": "^7.3.0",
     "@fastify/static": "^6.5.1",
