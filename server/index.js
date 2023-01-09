@@ -1,11 +1,15 @@
+const fs = require('fs')
+const path = require('path')
 const fastify = require('fastify')({ logger: true })
 const Tester = require('./tester')
 const cache = require('./cache');
 
-// fastify.register(require('@fastify/static'), {
-//   root: assetDir,
-//   prefix: '/asset',
-// });
+const assetDir = path.join(__dirname, '../client/dist')
+
+fastify.register(require('@fastify/static'), {
+  root: assetDir,
+  prefix: '/asset',
+});
 
 fastify.register(require('@fastify/formbody'));
 
@@ -16,8 +20,10 @@ fastify.setErrorHandler(function (error, request, reply) {
   reply.status(500).send({ error: error.message })
 })
 
-fastify.get('/', async (req, reply) => {
-  return reply.send('ok');
+fastify.get('/*', async (req, reply) => {
+  const stream = fs.createReadStream(path.join(assetDir, './index.html'))
+
+  return reply.type('text/html').send(stream)
 });
 
 fastify.get('/api/test', async (req, reply) => {
@@ -38,12 +44,12 @@ fastify.post('/api/test', async (req, reply) => {
   return reply.send('start success')
 });
 
-async function start() {
-  fastify.listen({ port: 8080, host: '0.0.0.0' });
+async function start(port) {
+  fastify.listen({ port, host: '0.0.0.0' });
 }
 
 process.on('uncaughtException', err => {
   console.error(err)
 })
 
-start()
+module.exports = { start }

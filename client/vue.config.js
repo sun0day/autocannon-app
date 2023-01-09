@@ -40,6 +40,7 @@ const assetsCDN = {
 
 // vue.config.js
 const vueConfig = {
+  publicPath: process.env.BASE_URL,
   configureWebpack: {
     // webpack plugins
     plugins: [
@@ -51,7 +52,7 @@ const vueConfig = {
       new webpack.DefinePlugin({
         APP_VERSION: `"${packageJson.version}"`,
         GIT_HASH: JSON.stringify(getGitHash()),
-        BUILD_DATE: buildDate
+        BUILD_DATE: buildDate,
       })
     ]
     // en_US: `if prod, add externals`

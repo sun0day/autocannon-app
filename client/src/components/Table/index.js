@@ -324,13 +324,14 @@ export default {
         }
       }}>
         {Object.keys(this.$slots).map(name => (<template slot={name}>{this.$slots[name]}</template>))}
-        <a-table v-if={this.innerColumns}
+        {this.innerColumns ? <a-table
           scroll={{ x: 'max-content' }}
           slot="expandedRowRender"
           slot-scope="text, record"
           columns={this.innerColumns}
           dataSource={this.innerDataSource}
-          pagination={false}></a-table>
+          pagination={false}></a-table> : null
+        }
       </a-table>
     )
 
