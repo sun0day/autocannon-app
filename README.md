@@ -23,7 +23,7 @@ $ npm i autocannon-app -g
 1. Execute command below:
 
 ```shell
-cannon start --port={your port, default 8080}
+cannon --port={your port, default 8080}
 ```
 
 2. Then visit `http://127.0.0.1:{your port}` in browser

@@ -1,8 +1,10 @@
+#!/usr/bin/env node
+
 const { program } = require('commander');
 const { start } = require('../server')
 
 program
-  .option('-P, --port <port>');
+  .option('-p, --port <port>');
 
 program.parse();
 
